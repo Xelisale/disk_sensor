@@ -6,7 +6,7 @@
     
 ## Reqaered 
  
-    Python>=3
+    Python>=3.7
     bottle==0.12.15
 
 ## Install
@@ -27,7 +27,12 @@
     
 #### Email and Threshold value
     Set email and threshold value  uses a configuration file settings.py
-    
+    The index of the frequency of sending the letter (sec)
+    Default POINT_MOUNT = ['/']
+    Example:
+      CICLE_TIME = 20
+      POINT_MOUNT = ['/', '/run/lock']
+      
 ## Systemd 
     Before to start need change uses directory in uwsgi.ini and check_disk.uwsgi.service
     
@@ -43,6 +48,7 @@
           
 ##### Create simlink:
     ln -s /opt/Check_disk/check_disk.uwsgi.service /etc/systemd/system/check_disk.uwsgi.sevice
+    
 ##### Start 
     systemctl enable check_disk.uwsgi.sevice
     systemctl start check_disk.uwsgi.sevice

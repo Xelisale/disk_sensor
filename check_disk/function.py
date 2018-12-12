@@ -5,24 +5,26 @@ from smtplib import SMTP_SSL, SMTPAuthenticationError
 
 
 class DiskStatus:
-	def __init__(self):
-		self.free_disk = []
-		self.where_space = '/'
+	def __init__(self, point_mount):
+		self.hostname = uname().node
+		self.free_disk = {self.hostname: {}}
+		self.point_mount = point_mount
 
 	def free_space(self):
-		stat = statvfs(self.where_space)
-		free = round(stat.f_bavail * stat.f_bsize / 1024 / 1024)
-		total_space = round(stat.f_blocks * stat.f_bsize / 1024 / 1024)
-		free_percent = round((free / total_space) * 100)
-		free_inode_percent = round(100 - (float(stat.f_files - stat.f_ffree) / stat.f_files) * 100)
+		for point in self.point_mount:
 
-		self.free_disk = {
-			'node': uname().node,
-			'free_disk': free,
-			'free_disk_percent': free_percent,
-			'free_inode': stat.f_ffree,
-			'free_inode_percent': free_inode_percent,
-		}
+			stat = statvfs(point)
+			free = round(stat.f_bavail * stat.f_bsize / 1024 / 1024)
+			total_space = round(stat.f_blocks * stat.f_bsize / 1024 / 1024)
+			free_percent = round((free / total_space) * 100)
+			free_inode_percent = round(100 - (float(stat.f_files - stat.f_ffree) / stat.f_files) * 100)
+
+			self.free_disk[self.hostname][point] = {
+					'free_disk_mb': free,
+					'free_disk_%': free_percent,
+					'free_inode': stat.f_ffree,
+					'free_inode_%': free_inode_percent,
+				}
 		return self.free_disk
 
 
@@ -42,14 +44,22 @@ class SendMail:
 		self.subject = subject
 
 	def send(self, free):
-		msg = "{2} : Осталось мало места на диске : {0} %. Свободно инодов:  {1}% " \
-			.format(free['free_disk_percent'], free['free_inode_percent'], free['node'])
+		for disk_level in free.values():
+			# level 1 key - hostname
+			key_host = list(free.keys())
 
-		text = MIMEText(msg, "", _charset="utf-8")
-		text["SUBJECT"] = self.subject
-		text["FROM"] = self.username_from
-		text["TO"] = self.username_to
-		server = SMTP_SSL(self.host_server, 465)
+			for disk in disk_level.values():
+				# level 2 key - mount point
+				key_point = list(disk_level.keys())
+
+				msg = (f"Hostname: {key_host[0]}. Остаток места на диске : {disk['free_disk_%']}%"
+				f" Точка монтирования \'{key_point[0]}\'. Свободно инодов:  {disk['free_inode_%']}%")
+
+				text = MIMEText(msg, "", _charset="utf-8")
+				text["SUBJECT"] = self.subject
+				text["FROM"] = self.username_from
+				text["TO"] = self.username_to
+				server = SMTP_SSL(self.host_server, 465)
 
 		try:
 			server.login(self.username_to, self.password)

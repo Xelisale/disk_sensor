@@ -1,38 +1,42 @@
 from bottle import Bottle, run
 from uwsgidecorators import timer
-from logging import basicConfig, warning,  WARNING
+from logging import basicConfig, warning, WARNING
 
 from .function import DiskStatus, SendMail
-from settings import WARNING_DISK_SPACE, WARNING_INODE_SPACE
-from settings import USERNAME_TO, USERNAME_FROM, PASSWORD, HOST_SERVER, SUBJECT
-from settings import BASE_URL
-
+from mysettings import WARNING_DISK_SPACE, WARNING_INODE_SPACE
+from mysettings import USERNAME_TO, USERNAME_FROM, PASSWORD, HOST_SERVER, SUBJECT
+from mysettings import BASE_URL, CICLE_TIME, POINT_MOUNT
 
 app = application = Bottle()
 logger = basicConfig(filename='sensor.log', level=WARNING)
 
 
-@timer(100)
+@timer(CICLE_TIME)
 def send(signum):
-	df = DiskStatus()
+	df = DiskStatus(POINT_MOUNT)
 	free_disk = df.free_space()
-	print(free_disk)
 
-	if free_disk['free_disk_percent'] < WARNING_DISK_SPACE or \
-		free_disk['free_inode_percent'] < WARNING_INODE_SPACE:
+	for disk_level in free_disk.values():
+		# level 1 key - hostname
 
-		sendm = SendMail(USERNAME_TO, USERNAME_FROM, PASSWORD, HOST_SERVER, SUBJECT)
-		sendm.send(free_disk)
+		for disk in disk_level.values():
+			# level 2 key - mount point
+			key_point = list(disk_level.keys())
 
-		warning(
-			"Осталось мало места на диске : {0} %.  Свободно инодов:  {1}% ".format(free_disk['free_disk_percent'],
-																				free_disk['free_inode_percent']))
+			if disk['free_disk_%'] < WARNING_DISK_SPACE or \
+					disk['free_inode_%'] < WARNING_INODE_SPACE:
+				sendm = SendMail(USERNAME_TO, USERNAME_FROM, PASSWORD, HOST_SERVER, SUBJECT)
+				sendm.send(free_disk)
+
+				warning(
+					f"Точка монтирования:  {key_point[0]} Осталось мало места на диске : {disk['free_disk_%']}%."
+					f"  Свободно инодов:  {disk['free_inode_%']}% ")
 
 
 @app.post(BASE_URL)
 @app.route(BASE_URL, methods=['GET'])
 def disk_data():
-	df = DiskStatus()
+	df = DiskStatus(POINT_MOUNT)
 	result = df.free_space()
 	return {'disk': result}
 
