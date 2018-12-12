@@ -41,5 +41,8 @@
         Example:
           ExecStart = /opt/Check_disk/venv/bin/uwsgi home/user/Check_disk/uwsgi.ini
           
-####Create simlink:
+##### Create simlink:
     ln -s /opt/Check_disk/check_disk.uwsgi.service /etc/systemd/system/check_disk.uwsgi.sevice
+##### Start 
+    systemctl enable check_disk.uwsgi.sevice
+    systemctl start check_disk.uwsgi.sevice
