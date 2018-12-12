@@ -1,0 +1,15 @@
+[Unit]
+Description=check_disk
+After=syslog.target
+
+[Service]
+ExecStart=/opt/Check_disk/venv/bin/uwsgi /opt/Check_disk/uwsgi.ini
+RuntimeDirectory=uwsgi
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
