@@ -52,9 +52,11 @@ class SendMail:
 				# level 2 key - mount point
 				key_point = list(disk_level.keys())
 
-				msg = (f"Hostname: {key_host[0]}. Остаток места на диске : {disk['free_disk_%']}%"
-				f" Точка монтирования \'{key_point[0]}\'. Свободно инодов:  {disk['free_inode_%']}%")
-
+				msg = "Hostname: {0}. Остаток места на диске : {1}%"
+				f" Точка монтирования \'{2}\'. Свободно инодов: {3}%".format(key_host[0],
+																			disk['free_disk_%'],
+																			key_point[0],
+																			disk['free_inode_%'])
 				text = MIMEText(msg, "", _charset="utf-8")
 				text["SUBJECT"] = self.subject
 				text["FROM"] = self.username_from

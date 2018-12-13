@@ -29,8 +29,8 @@ def send(signum):
 				sendm.send(free_disk)
 
 				warning(
-					f"Точка монтирования:  {key_point[0]} Осталось мало места на диске : {disk['free_disk_%']}%."
-					f"  Свободно инодов:  {disk['free_inode_%']}% ")
+					"Точка монтирования:  {0} Осталось мало места на диске : {1}%. \
+					 Свободно инодов:  {2}% ".format(key_point[0], disk['free_disk_%'], disk['free_inode_%'])
 
 
 @app.post(BASE_URL)
